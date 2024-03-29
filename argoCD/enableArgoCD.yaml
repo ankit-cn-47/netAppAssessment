@@ -5,27 +5,10 @@
   gather_facts: yes
 
   tasks:
-    - name: Install apt-transport-https
-      apt:
-        name: apt-transport-https
-        state: present
-
-    - name: Download the Google Cloud public signing key
-      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-      args:
-        warn: no
-
-    - name: Add the Kubernetes apt repository
-      apt_repository:
-        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-        state: present
-        filename: kubernetes.list
-
-    - name: Install kubectl
-      apt:
-        name: kubectl
-        state: present
-        update_cache: yes
+    
+    - name: creating namespace argocd
+      command: snap install kubectl
+      become: yes
 
     - name: creating namespace argocd
       command: kubectl create namespace argocd
@@ -33,8 +16,7 @@
 
     - name: installing argo cd
       command: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-      async: 0
-      poll: 0
+      become: yes
 
     - name: Port forward Argo CD to localhost
       command: kubectl port-forward svc/argocd-server -n argocd 8080:8080 &
