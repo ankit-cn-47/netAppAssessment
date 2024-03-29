@@ -1,0 +1,20 @@
+---
+- name: Apply Kubernetes Deployment
+  hosts: target_host
+  gather_facts: no
+
+  tasks:
+    - name: Port forward Argo CD to localhost
+      command: kubectl create namespace argocd
+      async: 0
+      poll: 0
+
+    - name: Port forward Argo CD to localhost
+      command: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      async: 0
+      poll: 0
+
+    - name: Port forward Argo CD to localhost
+      command: kubectl port-forward svc/argocd-server -n argocd 8080:8080 &
+      async: 0
+      poll: 0
