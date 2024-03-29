@@ -77,6 +77,7 @@
         path: /usr/local/bin/docker-compose
         mode: 'u+x'
       when: not docker_compose_stat.stat.exists
+
     - name: Add the current user to the docker group
       user:
         name: "{{ ansible_user }}"
