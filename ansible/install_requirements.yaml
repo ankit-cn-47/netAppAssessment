@@ -31,10 +31,13 @@
         state: present
 
     - name: Install Minikube
-      command: >
-        curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 'u+x'
       args:
         creates: /usr/local/bin/minikube
+
 
     - name: Install Python 3.11
       apt:
