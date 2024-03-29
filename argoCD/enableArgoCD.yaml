@@ -6,19 +6,19 @@
 
   tasks:
     
-    - name: install kubectl
-      command: snap install kubectl --classic
-      become: yes
+    # - name: install kubectl
+    #   command: snap install kubectl --classic
+    #   become: yes
 
     - name: creating namespace argocd
-      command: kubectl create namespace argocd
+      command: minikube kubectl create namespace argocd
       become: yes
 
     - name: installing argo cd
-      command: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      command: minikube kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
       become: yes
 
     - name: Port forward Argo CD to localhost
-      command: kubectl port-forward svc/argocd-server -n argocd 8080:8080 &
+      command: minikube kubectl port-forward svc/argocd-server -n argocd 8080:8080 &
       async: 0
       poll: 0
