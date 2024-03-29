@@ -62,6 +62,6 @@
 
     - name: Install Docker Compose
       pip:
-        executable: pip3.10
+        executable: pip3
         name: docker-compose
         state: latest
