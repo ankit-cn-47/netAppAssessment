@@ -59,9 +59,21 @@
         name: python3-pip
         state: latest
 
+    - name: Download Docker Compose binary
+      get_url:
+        url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      vars:
+        docker_compose_version: 1.29.2  # Replace with the desired version
 
-    - name: Install Docker Compose
-      pip:
-        executable: pip3
-        name: docker-compose
-        state: latest
+    - name: Verify Docker Compose installation
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_stat
+
+    - name: Set Docker Compose permissions
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      when: not docker_compose_stat.stat.exists
