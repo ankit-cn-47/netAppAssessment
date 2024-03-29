@@ -30,13 +30,18 @@
         name: docker-ce
         state: present
 
-    - name: Install Minikube
+    - name: Check if Minikube binary already exists
+      stat:
+        path: /usr/local/bin/minikube
+      register: minikube_stat
+
+    - name: Download Minikube if not already installed
       get_url:
         url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
         dest: /usr/local/bin/minikube
         mode: 'u+x'
-      args:
-        creates: /usr/local/bin/minikube
+      when: not minikube_stat.stat.exists
+
 
 
     - name: Install Python 3.11
