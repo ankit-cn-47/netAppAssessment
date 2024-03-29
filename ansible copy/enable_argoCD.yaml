@@ -5,13 +5,6 @@
   gather_facts: yes
 
   tasks:
-    - name: Start Minikube with admin privileges
-      command: minikube start --driver=docker --extra-config=apiserver.authorization-mode=RBAC
-      environment:
-        KUBECONFIG: /root/.kube/config
-      args:
-        creates: /root/.kube/config
-
     - name: Enable Argo CD in the Minikube cluster
       k8s:
         definition:
