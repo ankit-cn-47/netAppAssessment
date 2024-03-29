@@ -1,0 +1,107 @@
+---
+- name: Install Jenkins and configure Docker build agents
+  hosts: target_host
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Install Jenkins dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - openjdk-11-jdk
+        - gnupg
+        - software-properties-common
+
+    - name: Add Jenkins repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
+
+    - name: Add Jenkins repository
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian binary/
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+
+    - name: Install Docker plugin for Jenkins
+      command: java -jar /var/cache/jenkins/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080/ install-plugin docker-plugin
+      args:
+        creates: /var/lib/jenkins/plugins/docker-plugin.jpi
+
+    - name: Install Docker Pipeline plugin for Jenkins
+      command: java -jar /var/cache/jenkins/war/WEB-INF/jenkins-cli.jar -s http://localhost:8080/ install-plugin workflow-aggregator
+      args:
+        creates: /var/lib/jenkins/plugins/workflow-aggregator.jpi
+
+    - name: Restart Jenkins service
+      service:
+        name: jenkins
+        state: restarted
+
+    - name: Configure Docker Cloud in Jenkins
+      jenkins_script:
+        script: |
+          import jenkins.model.Jenkins
+          import hudson.plugins.docker.commons.tools.DockerTool
+
+          Jenkins.instance.clouds.clear()
+
+          def dockerCloud = new hudson.plugins.docker.DockerCloud(
+            "docker",
+            false,
+            "unix:///var/run/docker.sock",
+            null,
+            null,
+            null,
+            null,
+            null,
+            true,
+            null,
+            null,
+            0,
+            1,
+            1,
+            null,
+            null,
+            null,
+            false,
+            false,
+            0,
+            null,
+            0,
+            false,
+            false,
+            false,
+            null,
+            null
+          )
+          Jenkins.instance.clouds.add(dockerCloud)
+        jenkins_url: http://localhost:8080/
+        user: admin
+        password: admin
+
+    - name: Restart Jenkins service after configuring Docker Cloud
+      service:
+        name: jenkins
+        state: restarted

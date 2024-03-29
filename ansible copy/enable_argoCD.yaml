@@ -1,6 +1,6 @@
 ---
 - name: Start Minikube with admin privileges and enable Argo CD
-  hosts: localhost
+  hosts: target_host
   become: yes
   gather_facts: yes
 
