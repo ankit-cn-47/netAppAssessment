@@ -36,19 +36,19 @@
       args:
         creates: /usr/local/bin/minikube
 
-    - name: Install Python 3.1
+    - name: Install Python 3.11
       apt:
-        name: python3.10
+        name: python3.11
         state: present
 
-    - name: Install pip for Python 3.1
+    - name: Install pip for Python 3.11
       apt:
         name: python3-pip
         state: present
 
     - name: Upgrade pip
       pip:
-        executable: pip3.10
+        executable: pip3.11
         name: pip
         state: latest
 
