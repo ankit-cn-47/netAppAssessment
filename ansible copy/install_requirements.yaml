@@ -1,0 +1,94 @@
+---
+- name: Install pre-requisite softwares on target
+  hosts: target_host
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+        - software-properties-common
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Check if Minikube binary already exists
+      stat:
+        path: /usr/local/bin/minikube
+      register: minikube_stat
+
+    - name: Download Minikube if not already installed
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 'u+x'
+      when: not minikube_stat.stat.exists
+
+
+
+    - name: Install Python 3.11
+      apt:
+        name: python3.11
+        state: present
+
+    - name: Install pip for Python 3.11
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Upgrade pip using apt
+      apt:
+        name: python3-pip
+        state: latest
+
+    - name: Download Docker Compose binary
+      get_url:
+        url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      vars:
+        docker_compose_version: 1.29.2  # Replace with the desired version
+
+    - name: Verify Docker Compose installation
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_stat
+
+    - name: Set Docker Compose permissions
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      when: not docker_compose_stat.stat.exists
+
+    - name: Add the current user to the docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Set permissions for minikube and docker-compose
+      file:
+        path: "{{ item }}"
+        mode: 'u+x'
+      loop:
+        - /usr/local/bin/minikube
+        - /usr/local/bin/docker-compose
+
