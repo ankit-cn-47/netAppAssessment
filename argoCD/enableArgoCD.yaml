@@ -6,8 +6,8 @@
 
   tasks:
     
-    - name: creating namespace argocd
-      command: snap install kubectl
+    - name: install kubectl
+      command: snap install kubectl --classic
       become: yes
 
     - name: creating namespace argocd
