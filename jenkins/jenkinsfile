@@ -47,23 +47,20 @@ pipeline {
             }
         }
 
-        // stage('Build Docker Image') {
-        //     steps {
-        //         script {
-        //             try {
-        //                 def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-        //                 def dockerImage = docker.build("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag")
-        //                 dockerImage.inside {
-        //                     sh 'npm install'
-        //                     sh 'npm run build'
-        //                 }
-        //             } catch (Exception e) {
-        //                 echo "Failed to build Docker image: ${e.message}"
-        //                 error("Failed to build Docker image")
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build Docker Image') {
+            steps {
+                dir('nodeApp') {
+                    script {
+                    try {
+                        sh "docker build -t $DOCKER_IMAGE_NAME:$versionTag ."
+                    } catch (Exception e) {
+                        echo "Failed to build Docker image: ${e.message}"
+                        error("Failed to build Docker image")
+                    }
+                }
+                }                
+            }
+        }
 
         // stage('Push to Registry') {
         //     steps {
