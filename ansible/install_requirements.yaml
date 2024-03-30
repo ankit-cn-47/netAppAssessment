@@ -90,6 +90,11 @@
         dest: /usr/share/keyrings/jenkins-keyring.asc
       register: download_result
 
+    - name: Ensure /etc/apt/sources.list.d/jenkins.list exists
+      file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: touch
+
     - name: Add Jenkins Debian package repository
       blockinfile:
         path: /etc/apt/sources.list.d/jenkins.list
