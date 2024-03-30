@@ -8,6 +8,10 @@ pipeline {
         GIT_BRANCH = 'main'  // Specify the branch name
     }
 
+    tools {
+        nodejs "NodeJS LTS"  // Define the Node.js tool
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -32,7 +36,7 @@ pipeline {
                 script {
                     try {
                         dir('nodeApp') {
-                            sh 'sudo npm install'
+                            sh 'npm install'
                             sh 'npm test'
                         }
                     } catch (Exception e) {
