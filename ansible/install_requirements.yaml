@@ -52,7 +52,7 @@
         dest: /usr/local/bin/docker-compose
         mode: 'u+x'
       vars:
-        docker_compose_version: 2.24
+        docker_compose_version: 1.29.2
 
     - name: Verify Docker Compose installation
       stat:
