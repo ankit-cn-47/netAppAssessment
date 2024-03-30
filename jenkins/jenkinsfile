@@ -3,9 +3,10 @@ pipeline {
     
     environment {
         DOCKER_REGISTRY = 'your-docker-registry.com'
-        DOCKER_IMAGE_NAME = 'your-docker-image-name'
+        DOCKER_IMAGE_NAME = 'node-app'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
         GIT_BRANCH = 'dev'  // Specify the branch name
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub')
     }
 
     tools {
@@ -62,20 +63,23 @@ pipeline {
             }
         }
 
-        // stage('Push to Registry') {
-        //     steps {
-        //         script {
-        //             try {
-        //                 def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-        //                 docker.withRegistry("https://$DOCKER_REGISTRY", 'docker-credentials-id') {
-        //                     docker.image("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag").push()
-        //                 }
-        //             } catch (Exception e) {
-        //                 echo "Failed to push Docker image to registry: ${e.message}"
-        //                 error("Failed to push Docker image to registry")
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push to Registry') {
+            steps {
+                script {
+                    try {
+                        sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                        sh "docker push $DOCKER_IMAGE_NAME:$BUILD_NUMBER"
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to push Docker image to registry: ${e.message}"
+                        error("Failed to push Docker image to registry")
+                    }
+                }
+            }
+        post {
+            always {
+            sh 'docker logout'
+            }
+        }
     }
 }
