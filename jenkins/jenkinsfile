@@ -2,29 +2,43 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_REGISTRY = 'https://hub.docker.com/repository/docker/ankitchandra47/netapp-assessment/general'
-        DOCKER_IMAGE_NAME = 'nodeApp'
+        DOCKER_REGISTRY = 'your-docker-registry.com'
+        DOCKER_IMAGE_NAME = 'your-docker-image-name'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
-        GIT_BRANCH = 'main'
+        GIT_BRANCH = 'main'  // Specify the branch name
     }
 
     stages {
         stage('Clone') {
             steps {
-                checkout([$class: 'GitSCM',
-                          branches: [[name: "${GIT_BRANCH}"]],
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions: [],
-                          submoduleCfg: [],
-                          userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]])
+                script {
+                    try {
+                        checkout([$class: 'GitSCM',
+                                  branches: [[name: "${GIT_BRANCH}"]],
+                                  doGenerateSubmoduleConfigurations: false,
+                                  extensions: [],
+                                  submoduleCfg: [],
+                                  userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]])
+                    } catch (Exception e) {
+                        echo "Failed to clone repository: ${e.message}"
+                        error("Failed to clone repository")
+                    }
+                }
             }
         }
         
         stage('Test') {
             steps {
-                dir('nodeApp') {
-                    sh 'npm install'
-                    sh 'npm test'
+                script {
+                    try {
+                        dir('nodeApp') {
+                            sh 'npm install'
+                            sh 'npm test'
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to run tests: ${e.message}"
+                        error("Failed to run tests")
+                    }
                 }
             }
         }
@@ -32,11 +46,16 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-                    def dockerImage = docker.build("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag")
-                    dockerImage.inside {
-                        sh 'npm install'
-                        sh 'npm run build'
+                    try {
+                        def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
+                        def dockerImage = docker.build("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag")
+                        dockerImage.inside {
+                            sh 'npm install'
+                            sh 'npm run build'
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to build Docker image: ${e.message}"
+                        error("Failed to build Docker image")
                     }
                 }
             }
@@ -45,9 +64,14 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 script {
-                    def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-                    docker.withRegistry("https://$DOCKER_REGISTRY", 'docker-credentials-id') {
-                        docker.image("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag").push()
+                    try {
+                        def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
+                        docker.withRegistry("https://$DOCKER_REGISTRY", 'docker-credentials-id') {
+                            docker.image("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag").push()
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to push Docker image to registry: ${e.message}"
+                        error("Failed to push Docker image to registry")
                     }
                 }
             }
