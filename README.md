@@ -13,4 +13,19 @@
 
 ### Jenkins
 * plugins to configure - nodejs and cloudbees docker build and publish (docker root : /usr/bin/docker)
-* add jenkins to docker user group and restart jenkins - sudo systemctl restart jenkins
+* configure docker and node plugin in global tool configuration
+* add jenkins to docker user group and restart jenkins - sudo systemctl restart jenkins - sudo usermod -aG docker jenkins
+
+### Argo CD
+* create argocd namespace in the minikube cluster
+* apply the argo cd install.yaml from the official repo
+* add the git repo using argocd dashboard
+* create application to watch the kubernetes repo
+* add secret to minikube default cluster to access the dockerhub account to pull the images
+
+### Kubernetes
+* start the minikube cluster using minikube start
+* configure the docker secret to enable access to dockerhub registry to use images
+
+
+
