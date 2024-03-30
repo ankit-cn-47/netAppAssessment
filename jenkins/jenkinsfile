@@ -6,6 +6,7 @@ pipeline {
         DOCKER_IMAGE_NAME = 'your-docker-image-name'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
         GIT_BRANCH = 'dev'  // Specify the branch name
+        versionTag = $BUILD_NUMBER
     }
 
     tools {
