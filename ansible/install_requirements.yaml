@@ -83,6 +83,16 @@
       apt:
         name: openjdk-11-jdk
         state: present
+    
+    - name: Install Node.js LTS version
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install npm
+      apt:
+        name: npm
+        state: present
 
     - name: Download Jenkins GPG key
       get_url:
