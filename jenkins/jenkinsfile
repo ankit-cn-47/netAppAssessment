@@ -5,7 +5,7 @@ pipeline {
         DOCKER_REGISTRY = 'your-docker-registry.com'
         DOCKER_IMAGE_NAME = 'your-docker-image-name'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
-        GIT_BRANCH = 'main'  // Specify the branch name
+        GIT_BRANCH = 'dev'  // Specify the branch name
     }
 
     tools {
@@ -36,7 +36,7 @@ pipeline {
                 script {
                     try {
                         dir('nodeApp') {
-                            sh 'npm install'
+                            sh 'npm ci'
                             sh 'npm test'
                         }
                     } catch (Exception e) {
@@ -47,38 +47,38 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    try {
-                        def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-                        def dockerImage = docker.build("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag")
-                        dockerImage.inside {
-                            sh 'npm install'
-                            sh 'npm run build'
-                        }
-                    } catch (Exception e) {
-                        echo "Failed to build Docker image: ${e.message}"
-                        error("Failed to build Docker image")
-                    }
-                }
-            }
-        }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
+        //                 def dockerImage = docker.build("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag")
+        //                 dockerImage.inside {
+        //                     sh 'npm install'
+        //                     sh 'npm run build'
+        //                 }
+        //             } catch (Exception e) {
+        //                 echo "Failed to build Docker image: ${e.message}"
+        //                 error("Failed to build Docker image")
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Push to Registry') {
-            steps {
-                script {
-                    try {
-                        def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
-                        docker.withRegistry("https://$DOCKER_REGISTRY", 'docker-credentials-id') {
-                            docker.image("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag").push()
-                        }
-                    } catch (Exception e) {
-                        echo "Failed to push Docker image to registry: ${e.message}"
-                        error("Failed to push Docker image to registry")
-                    }
-                }
-            }
-        }
+        // stage('Push to Registry') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 def versionTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT[0..7]}"
+        //                 docker.withRegistry("https://$DOCKER_REGISTRY", 'docker-credentials-id') {
+        //                     docker.image("$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$versionTag").push()
+        //                 }
+        //             } catch (Exception e) {
+        //                 echo "Failed to push Docker image to registry: ${e.message}"
+        //                 error("Failed to push Docker image to registry")
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
