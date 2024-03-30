@@ -7,6 +7,8 @@ pipeline {
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
         GIT_BRANCH = 'dev'  // Specify the branch name
         DOCKERHUB_CREDENTIALS = credentials('docker-hub')
+        DOCKERHUB_USERNAME = 'ankitchandra47'
+        DOCKERHUB_REPO = 'ankitchandra47/netapp-assessment'
     }
 
     tools {
@@ -73,6 +75,7 @@ pipeline {
                 script {
                     try {
                         sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                        sh "docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME $DOCKERHUB_REPO $BUILD_NUMBER"
                         sh "docker push $DOCKER_IMAGE_NAME:$BUILD_NUMBER"
                     } catch (Exception e) {
                         echo "Failed to push Docker image to registry: ${e.message}"
