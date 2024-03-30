@@ -6,7 +6,6 @@ pipeline {
         DOCKER_IMAGE_NAME = 'your-docker-image-name'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
         GIT_BRANCH = 'dev'  // Specify the branch name
-        versionTag = $BUILD_NUMBER
     }
 
     tools {
@@ -53,7 +52,7 @@ pipeline {
                 dir('nodeApp') {
                     script {
                     try {
-                        sh "docker build -t $DOCKER_IMAGE_NAME:$versionTag ."
+                        sh "docker build -t $DOCKER_IMAGE_NAME:$BUILD_NUMBER ."
                     } catch (Exception e) {
                         echo "Failed to build Docker image: ${e.message}"
                         error("Failed to build Docker image")
