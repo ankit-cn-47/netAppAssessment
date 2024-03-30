@@ -10,7 +10,7 @@ pipeline {
     }
 
     tools {
-        nodejs "node"  // Define the Node.js tool
+        nodejs "node"
     }
 
     stages {
@@ -69,17 +69,17 @@ pipeline {
                     try {
                         sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
                         sh "docker push $DOCKER_IMAGE_NAME:$BUILD_NUMBER"
-                        }
                     } catch (Exception e) {
                         echo "Failed to push Docker image to registry: ${e.message}"
                         error("Failed to push Docker image to registry")
                     }
                 }
             }
+        }
         post {
             always {
             sh 'docker logout'
-            }
+            }        
         }
     }
 }
