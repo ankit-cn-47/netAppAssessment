@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_REGISTRY = 'your-docker-registry.com'
+        DOCKER_REGISTRY = 'https://hub.docker.com/repository/docker/ankitchandra47/netapp-assessment/'
         DOCKER_IMAGE_NAME = 'node-app'
         GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
         GIT_BRANCH = 'dev'  // Specify the branch name
