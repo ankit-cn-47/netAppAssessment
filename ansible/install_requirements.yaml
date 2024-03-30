@@ -84,19 +84,18 @@
         name: openjdk-11-jdk
         state: present
 
-    - name: Add Jenkins Debian package repository key
-      apt_key:
-        url: https://pkg.jenkins.io/debian/jenkins.io.key
-        state: present
+    - name: Download Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+      register: download_result
 
     - name: Add Jenkins Debian package repository
-      apt_repository:
-        repo: deb https://pkg.jenkins.io/debian-stable binary/
-        state: present
-
-    - name: Update apt cache
-      apt:
-        update_cache: yes
+      blockinfile:
+        path: /etc/apt/sources.list.d/jenkins.list
+        block: |
+          deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+      notify: Update apt cache
 
     - name: Install Jenkins
       apt:
@@ -107,4 +106,9 @@
       service:
         name: jenkins
         state: started
+
+  handlers:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
