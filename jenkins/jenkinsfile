@@ -76,7 +76,7 @@ pipeline {
                     try {
                         sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
                         sh "docker tag $DOCKER_IMAGE_NAME:$BUILD_NUMBER $DOCKERHUB_REPO:$BUILD_NUMBER"
-                        sh "docker push $DOCKER_IMAGE_NAME:$BUILD_NUMBER"
+                        sh "docker push $DOCKERHUB_REPO:$BUILD_NUMBER"
                     } catch (Exception e) {
                         echo "Failed to push Docker image to registry: ${e.message}"
                         error("Failed to push Docker image to registry")
