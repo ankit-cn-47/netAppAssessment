@@ -25,6 +25,10 @@
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
         state: present
 
+    - name: install kubectl
+      command: snap install kubectl --classic
+      become: yes
+
     - name: Install Docker
       apt:
         name: docker-ce
@@ -42,30 +46,13 @@
         mode: 'u+x'
       when: not minikube_stat.stat.exists
 
-
-
-    - name: Install Python 3.11
-      apt:
-        name: python3.11
-        state: present
-
-    - name: Install pip for Python 3.11
-      apt:
-        name: python3-pip
-        state: present
-
-    - name: Upgrade pip using apt
-      apt:
-        name: python3-pip
-        state: latest
-
     - name: Download Docker Compose binary
       get_url:
         url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: 'u+x'
       vars:
-        docker_compose_version: 1.29.2  # Replace with the desired version
+        docker_compose_version: 2.24
 
     - name: Verify Docker Compose installation
       stat:
@@ -91,4 +78,19 @@
       loop:
         - /usr/local/bin/minikube
         - /usr/local/bin/docker-compose
+    
+    - name: Install Java 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
 
