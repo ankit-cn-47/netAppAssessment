@@ -1,0 +1,93 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_REGISTRY = 'https://hub.docker.com/repository/docker/ankitchandra47/netapp-assessment/'
+        DOCKER_IMAGE_NAME = 'node-app'
+        GIT_REPO_URL = 'https://github.com/ankit-cn-47/netAppAssessment.git'
+        GIT_BRANCH = 'dev'  // Specify the branch name
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub')
+        DOCKERHUB_USERNAME = 'ankitchandra47'
+        DOCKERHUB_REPO = 'ankitchandra47/netapp-assessment'
+    }
+
+    tools {
+        nodejs "node"
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+        stage('Clone') {
+            steps {
+                script {
+                    try {
+                        checkout([$class: 'GitSCM',
+                                  branches: [[name: "${GIT_BRANCH}"]],
+                                  doGenerateSubmoduleConfigurations: false,
+                                  extensions: [],
+                                  submoduleCfg: [],
+                                  userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]])
+                    } catch (Exception e) {
+                        echo "Failed to clone repository: ${e.message}"
+                        error("Failed to clone repository")
+                    }
+                }
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                script {
+                    try {
+                        dir('nodeApp') {
+                            sh 'npm ci'
+                            sh 'npm test'
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to run tests: ${e.message}"
+                        error("Failed to run tests")
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('nodeApp') {
+                    script {
+                    try {
+                        sh "docker build -t $DOCKER_IMAGE_NAME:$BUILD_NUMBER ."
+                    } catch (Exception e) {
+                        echo "Failed to build Docker image: ${e.message}"
+                        error("Failed to build Docker image")
+                    }
+                }
+                }                
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                script {
+                    try {
+                        sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                        sh "docker tag $DOCKER_IMAGE_NAME:$BUILD_NUMBER $DOCKERHUB_REPO:$BUILD_NUMBER"
+                        sh "docker push $DOCKERHUB_REPO:$BUILD_NUMBER"
+                    } catch (Exception e) {
+                        echo "Failed to push Docker image to registry: ${e.message}"
+                        error("Failed to push Docker image to registry")
+                    }
+                }
+            }
+        }        
+    }
+    post {
+        always {
+        sh 'docker logout'
+        }        
+    }
+}

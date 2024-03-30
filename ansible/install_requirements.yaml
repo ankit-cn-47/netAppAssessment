@@ -1,0 +1,126 @@
+---
+- name: Install pre-requisite softwares on target
+  hosts: target_host
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+        - software-properties-common
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: install kubectl
+      command: snap install kubectl --classic
+      become: yes
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Check if Minikube binary already exists
+      stat:
+        path: /usr/local/bin/minikube
+      register: minikube_stat
+
+    - name: Download Minikube if not already installed
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 'u+x'
+      when: not minikube_stat.stat.exists
+
+    - name: Download Docker Compose binary
+      get_url:
+        url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      vars:
+        docker_compose_version: 1.29.2
+
+    - name: Verify Docker Compose installation
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_stat
+
+    - name: Set Docker Compose permissions
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: 'u+x'
+      when: not docker_compose_stat.stat.exists
+
+    - name: Add the current user to the docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Set permissions for minikube and docker-compose
+      file:
+        path: "{{ item }}"
+        mode: 'u+x'
+      loop:
+        - /usr/local/bin/minikube
+        - /usr/local/bin/docker-compose
+    
+    - name: Install Java 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+    
+    - name: Install Node.js LTS version
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install npm
+      apt:
+        name: npm
+        state: present
+
+    - name: Download Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+      register: download_result
+
+    - name: Ensure /etc/apt/sources.list.d/jenkins.list exists
+      file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: touch
+
+    - name: Add Jenkins Debian package repository
+      blockinfile:
+        path: /etc/apt/sources.list.d/jenkins.list
+        block: |
+          deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+    
+    - name: Update repository apt
+      command: apt update
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+

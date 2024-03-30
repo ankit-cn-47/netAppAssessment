@@ -1,0 +1,21 @@
+# Ignore node_modules folder
+node_modules
+
+# Ignore npm debug log
+npm-debug.log
+
+# Ignore Docker specific files
+.dockerignore
+
+# Ignore editor specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore npm package-lock.json
+package-lock.json
+
+# Ignore .env files
+.env
+.env.*

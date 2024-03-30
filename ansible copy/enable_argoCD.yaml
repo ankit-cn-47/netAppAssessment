@@ -1,0 +1,40 @@
+---
+- name: Start Minikube with admin privileges and enable Argo CD
+  hosts: target_host
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Enable Argo CD in the Minikube cluster
+      k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: argocd-server
+            namespace: argocd
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app.kubernetes.io/name: argocd-server
+            template:
+              metadata:
+                labels:
+                  app.kubernetes.io/name: argocd-server
+              spec:
+                containers:
+                  - name: argocd-server
+                    image: argoproj/argocd:v2.1.2
+                    ports:
+                      - containerPort: 8080
+                    command:
+                      - argocd-server
+                    args:
+                      - "--insecure"
+        state: present
+
+    - name: Port forward Argo CD to localhost
+      command: kubectl port-forward svc/argocd-server -n argocd 8080:8080 &
+      async: 0
+      poll: 0
