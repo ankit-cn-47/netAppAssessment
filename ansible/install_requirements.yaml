@@ -100,7 +100,9 @@
         path: /etc/apt/sources.list.d/jenkins.list
         block: |
           deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
-      notify: Update apt cache
+    
+    - name: Update repository apt
+      command: apt update
 
     - name: Install Jenkins
       apt:
@@ -111,9 +113,4 @@
       service:
         name: jenkins
         state: started
-
-  handlers:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
 
